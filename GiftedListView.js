@@ -199,6 +199,11 @@ var GiftedListView = React.createClass({
   componentDidMount() {
     this.props.onFetch(this._getPage(), this._postRefresh, {firstLoad: true});
   },
+  //state change refresh
+  componentWillReceiveProps(){
+		this._setPage(1);
+   	this.props.onFetch(this._getPage(), this._postRefresh, {firstLoad:true});
+ 	},
 
   setNativeProps(props) {
     this.refs.listview.setNativeProps(props);
