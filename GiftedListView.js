@@ -208,7 +208,7 @@ var GiftedListView = React.createClass({
     this._onRefresh({external: true});
   },
 
-  _onRefresh(options = {}) {
+  _onRefresh(options = {refresh: true}) {
     if (this.isMounted()) {
       this.setState({
         isRefreshing: true,
@@ -231,7 +231,7 @@ var GiftedListView = React.createClass({
       this.setState({
         paginationStatus: 'fetching',
       });
-      this.props.onFetch(this._getPage() + 1, this._postPaginate, {});
+      this.props.onFetch(this._getPage() + 1, this._postPaginate, {paginate: true});
     }
   },
 
@@ -247,7 +247,7 @@ var GiftedListView = React.createClass({
     if(this.props.distinctRows){
       mergedRows = this.props.distinctRows(mergedRows);
     }
-    
+
     this._updateRows(mergedRows, options);
   },
 
@@ -300,6 +300,7 @@ var GiftedListView = React.createClass({
         colors={this.props.refreshableColors}
         progressBackgroundColor={this.props.refreshableProgressBackgroundColor}
         size={this.props.refreshableSize}
+        style={this.props.refreshableStyle}
         tintColor={this.props.refreshableTintColor}
         title={this.props.refreshableTitle}
       />
