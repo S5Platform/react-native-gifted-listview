@@ -9,26 +9,21 @@ var {
   View,
   Text,
   RefreshControl,
+  ActivityIndicator,
 } = require('react-native');
 
 
 // small helper function which merged two objects into one
-function MergeRecursive(obj1, obj2) {
-  for (var p in obj2) {
-    try {
-      if ( obj2[p].constructor==Object ) {
-        obj1[p] = MergeRecursive(obj1[p], obj2[p]);
-      } else {
-        obj1[p] = obj2[p];
-      }
-    } catch(e) {
-      obj1[p] = obj2[p];
+function MergeRowsWithHeaders(obj1, obj2) {
+  for(var p in obj2){
+    if(obj1[p] instanceof Array && obj1[p] instanceof Array){
+      obj1[p] = obj1[p].concat(obj2[p])
+    } else {
+      obj1[p] = obj2[p]
     }
   }
   return obj1;
 }
-
-var GiftedSpinner = require('react-native-gifted-spinner');
 
 var GiftedListView = React.createClass({
 
@@ -102,7 +97,7 @@ var GiftedListView = React.createClass({
 
     return (
       <View style={[this.defaultStyles.paginationView, this.props.customStyles.paginationView]}>
-        <GiftedSpinner />
+        <ActivityIndicator animating={true} size="small"/>
       </View>
     );
   },
@@ -204,6 +199,11 @@ var GiftedListView = React.createClass({
   componentDidMount() {
     this.props.onFetch(this._getPage(), this._postRefresh, {firstLoad: true});
   },
+  //state change refresh
+  componentWillReceiveProps(){
+		this._setPage(1);
+   	this.props.onFetch(this._getPage(), this._postRefresh, {firstLoad:true});
+ 	},
 
   setNativeProps(props) {
     this.refs.listview.setNativeProps(props);
@@ -213,7 +213,7 @@ var GiftedListView = React.createClass({
     this._onRefresh({external: true});
   },
 
-  _onRefresh(options = {}) {
+  _onRefresh(options = {refresh: true}) {
     if (this.isMounted()) {
       this.setState({
         isRefreshing: true,
@@ -236,7 +236,7 @@ var GiftedListView = React.createClass({
       this.setState({
         paginationStatus: 'fetching',
       });
-      this.props.onFetch(this._getPage() + 1, this._postPaginate, {});
+      this.props.onFetch(this._getPage() + 1, this._postPaginate, {paginate: true});
     }
   },
 
@@ -244,7 +244,7 @@ var GiftedListView = React.createClass({
     this._setPage(this._getPage() + 1);
     var mergedRows = null;
     if (this.props.withSections === true) {
-      mergedRows = MergeRecursive(this._getRows(), rows);
+      mergedRows = MergeRowsWithHeaders(this._getRows(), rows);
     } else {
       mergedRows = this._getRows().concat(rows);
     }
@@ -252,7 +252,7 @@ var GiftedListView = React.createClass({
     if(this.props.distinctRows){
       mergedRows = this.props.distinctRows(mergedRows);
     }
-    
+
     this._updateRows(mergedRows, options);
   },
 
@@ -285,7 +285,7 @@ var GiftedListView = React.createClass({
       return this.paginationFetchingView();
     } else if (this.state.paginationStatus === 'waiting' && this.props.pagination === true && (this.props.withSections === true || this._getRows().length > 0)) {
       return this.paginationWaitingView(this._onPaginate);
-    } else if (this.state.paginationStatus === 'allLoaded' && this.props.pagination === true) {
+    } else if (this.state.paginationStatus === 'allLoaded' && this.props.pagination === true && this._getRows().length != 0) {
       return this.paginationAllLoadedView();
     } else if (this._getRows().length === 0) {
       return this.emptyView(this._onRefresh);
@@ -305,6 +305,7 @@ var GiftedListView = React.createClass({
         colors={this.props.refreshableColors}
         progressBackgroundColor={this.props.refreshableProgressBackgroundColor}
         size={this.props.refreshableSize}
+        style={this.props.refreshableStyle}
         tintColor={this.props.refreshableTintColor}
         title={this.props.refreshableTitle}
       />
